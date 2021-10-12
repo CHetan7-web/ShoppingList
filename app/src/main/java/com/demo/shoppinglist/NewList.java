@@ -12,28 +12,19 @@ import com.demo.shoppinglist.data.MyDbHandler;
 import com.demo.shoppinglist.model.shopping;
 
 public class NewList extends AppCompatActivity {
-    shopping shopping;
-    EditText item;
-    EditText quantity;
-    String item1;
-    String quantity1;
-    MyDbHandler db;
+
+    EditText title,description;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_list);
-        db = new MyDbHandler(NewList.this);
-        Intent intent = getIntent();
-        shopping = new shopping();
+
     }
     public void addList(View view){
-        item =(EditText) findViewById(R.id.item);
-        quantity =(EditText) findViewById(R.id.quantity);
-        item1 = item.getText().toString();
-        quantity1 = quantity.getText().toString();
-        shopping.setName(item1);
-        shopping.setQuantity(quantity1);
-        db.addItem(shopping);
+        title=findViewById(R.id.title);
+        description=findViewById(R.id.description);
+
         Toast.makeText(this,"Item Added Successfully",Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this,MainActivity.class);
         startActivity(intent);
