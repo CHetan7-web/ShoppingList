@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase;
 import com.demo.shoppinglist.Interfaces.ItemDao;
 import com.demo.shoppinglist.Entity.Item;
 
-@Database(entities = {Item.class},version = 1)
+@Database(entities = {Item.class},version = 5)
 public abstract class ShoppingDatabase extends RoomDatabase {
 
     private ItemDao itemDao;
@@ -20,8 +20,8 @@ public abstract class ShoppingDatabase extends RoomDatabase {
     public static synchronized ShoppingDatabase getInstance(Context context){
         if (instance==null)
             instance= Room.databaseBuilder(context.getApplicationContext(),
-                         ShoppingDatabase.class,
-                        "shopping_database")
+                         ShoppingDatabase.class, "shopping_database")
+                        .allowMainThreadQueries()
                         .fallbackToDestructiveMigration()
                         .build();
 

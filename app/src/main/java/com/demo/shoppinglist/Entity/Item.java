@@ -1,33 +1,32 @@
 package com.demo.shoppinglist.Entity;
 
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "shopping_item")
 public class Item {
 
-    @PrimaryKey
-    private long time ;
+    @PrimaryKey()
+    private Long time ;
 
-    @ColumnInfo(defaultValue = "false")
-    private Boolean isImportant;
+    private Integer isImportant;
 
-    @ColumnInfo(defaultValue = "false")
-    private Boolean isComplete;
+    private Integer isComplete;
 
     private String title;
 
     private String description;
 
+    //Time
     public long getTime() {
-        return time;
+        return this.time;
     }
 
-    public void setTime(long time) {
+    public void setTime(Long time) {
         this.time = time;
     }
 
+    //TItle
     public String getTitle() {
         return title;
     }
@@ -36,6 +35,8 @@ public class Item {
         this.title = title;
     }
 
+
+    //Desciption
     public String getDescription() {
         return description;
     }
@@ -44,21 +45,24 @@ public class Item {
         this.description = description;
     }
 
-    public Boolean getImportant() {
+    //Important
+    public void setIsImportant(Integer isImportant) {
+        this.isImportant = isImportant;
+    }
+
+    public Integer getIsImportant() {
         return isImportant;
     }
 
-    public void setImportant(Boolean important) {
-        isImportant = important;
+    //Complete
+    public void setIsComplete(Integer isComplete) {
+        this.isComplete = isComplete;
     }
 
-    public Boolean getComplete() {
+    public Integer getIsComplete() {
         return isComplete;
     }
 
-    public void setComplete(Boolean complete) {
-        isComplete = complete;
-    }
 
     public Item(long time, String title, String description) {
         this.time = time;
@@ -66,7 +70,7 @@ public class Item {
         this.description = description;
     }
 
-    public Item(long time, Boolean isImportant, String title, String description) {
+    public Item(long time, Integer isImportant, String title, String description) {
         this.time = time;
         this.isImportant = isImportant;
         this.title = title;
@@ -76,11 +80,22 @@ public class Item {
     public Item() {
     }
 
-    public Item(long time, Boolean isImportant, Boolean isComplete, String title, String description) {
+    public Item(long time, Integer isImportant, Integer isComplete, String title, String description) {
         this.time = time;
         this.isImportant = isImportant;
         this.isComplete = isComplete;
         this.title = title;
         this.description = description;
+    }
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "time=" + time +
+                ", isImportant=" + isImportant +
+                ", isComplete=" + isComplete +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                '}';
     }
 }

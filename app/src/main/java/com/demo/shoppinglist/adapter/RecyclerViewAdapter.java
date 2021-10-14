@@ -7,29 +7,39 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.Filter;
+import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.demo.shoppinglist.Entity.Item;
 import com.demo.shoppinglist.R;
+import com.demo.shoppinglist.ViewModel.ItemViewModel;
 import com.demo.shoppinglist.data.MyDbHandler;
 import com.demo.shoppinglist.model.shopping;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
-    private Context context;
-    private List<shopping> shoppingList;
-    int color;
-    public RecyclerViewAdapter(Context context, List<shopping> shoppingList) {
-        this.context = context;
-        this.shoppingList = shoppingList;
+public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> implements Filterable {
+    private Context mContext;
+    private List<Item> items,itemsFull;
+    ItemViewModel mItemViewModel;
+
+    public RecyclerViewAdapter(Context context) {
+        this.mContext = context;
+        this.items = new ArrayList<>();
+        this.itemsFull = new ArrayList<>();
+        this.mItemViewModel = new ViewModelProvider((ViewModelStoreOwner) mContext).get(ItemViewModel.class);
     }
-    MyDbHandler db;
-    shopping shop = new shopping();
 
     @NonNull
     @Override
@@ -40,59 +50,142 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerViewAdapter.ViewHolder holder, int position) {
-        shopping shopping = shoppingList.get(position);
-        holder.itemName.setText(shopping.getName());
-        holder.quantity.setText(shopping.getQuantity());
-        int id = position+1;
-        holder.itemId.setText(""+id);
-        db = new MyDbHandler(context);
-        if(db.getcolor(id)==1){
-//            holder.itemId.setTextColor(Color.parseColor("#00ff00"));
-            holder.con.setBackgroundColor(Color.GREEN);
-        }
+        Item item = items.get(position);
+        holder.titleTextView.setText(item.getTitle());
+        holder.descriptionTextView.setText(item.getDescription());
 
-        Log.d("nishi", "colorno is");
-        holder.itemId.setOnClickListener(new View.OnClickListener() {
+        if (item.getIsComplete()==null)
+            holder.IsComplete.setChecked(false);
+        else if(item.getIsComplete()==1)
+            holder.IsComplete.setChecked(true);
+        else
+            holder.IsComplete.setChecked(false);
+
+        if (item.getIsImportant()==null)
+            holder.IsImportant.setImageResource(R.drawable.important);
+        else if(item.getIsImportant()==1)
+                holder.IsImportant.setImageResource(R.drawable.gold_star);
+            else
+                holder.IsImportant.setImageResource(R.drawable.important);
+
+        holder.IsImportant.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                  Toast.makeText(context, "Clicked"+id, Toast.LENGTH_SHORT).show();
-                    Log.d("nishi", "color Changed");
-                    if (db.getcolor(id)==0){
-//                        holder.itemId.setTextColor(Color.parseColor("#00ff00"));
-                        holder.con.setBackgroundColor(Color.GREEN);
-                        db.setcolor(id);
-                    }
+                if (item.getIsImportant() == null){
+                    holder.IsImportant.setImageResource(R.drawable.gold_star);
+                    Log.d("SET_COLOR","Important Task");
+                    item.setIsImportant(Integer.valueOf(1));
+                }
+                else if(item.getIsImportant()==1){
+                        holder.IsImportant.setImageResource(R.drawable.important);
+                        Log.d("SET_COLOR","Not Important Task");
+                        item.setIsImportant(Integer.valueOf(0));
+                }
                     else{
-                        holder.itemId.setTextColor(Color.parseColor("#000000"));
-                        holder.con.setBackgroundColor(Color.WHITE);
-                        db.resetcolor(id);
-                    }
-
+                        holder.IsImportant.setImageResource(R.drawable.gold_star);
+                        Log.d("SET_COLOR","Important Task");
+                        item.setIsImportant(Integer.valueOf(1));
+                }
+                mItemViewModel.update(item);
             }
-
         });
+
+        holder.IsComplete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (item.getIsComplete() == null){
+//                    holder.IsComplete.
+//                    Log.d("SET_COLOR","Important Task");
+                    item.setIsComplete(Integer.valueOf(1));//1
+                }
+                else if(item.getIsComplete()==1){
+//                    holder.IsImportant.setImageResource(R.drawable.important);
+//                    Log.d("SET_COLOR","Not Important Task");
+                    item.setIsComplete(Integer.valueOf(0));//0
+                }
+                else{
+//                    holder.IsImportant.setImageResource(R.drawable.gold_star);
+//                    Log.d("SET_COLOR","Important Task");
+                    item.setIsComplete(Integer.valueOf(1));//1
+                }
+                mItemViewModel.update(item);
+            }
+        });
+
+        Log.d("DATA","View Created for"+item.toString());
     }
 
     @Override
     public int getItemCount() {
-        return shoppingList.size();
+        return this.items.size();
     }
+
+    public void setItems(List<Item> itemS){
+        this.items.clear();
+        this.items=itemS;
+        this.itemsFull = new ArrayList<>(itemS);
+        notifyDataSetChanged();
+        Log.d("DATA_ADDED",""+items.size()+" : "+itemsFull.size());
+    }
+
+    @Override
+    public Filter getFilter() {
+        return searchFilter;
+    }
+
+    private Filter searchFilter = new Filter() {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+
+            List<Item> filterList = new ArrayList<>();
+            Log.d("CONSTAINT",String.valueOf(constraint));
+            if (constraint==null | constraint.length() == 0) {
+                filterList.addAll(itemsFull);
+                Log.d("EMPTY_TEXT","NO TEXT "+items.size()+" "+itemsFull.size());
+            }
+            else {
+
+                String filterPattern = constraint.toString().toLowerCase().trim();
+                //Log.d("SEARCH_FILTER",filterPattern+" : "+filterList.size());
+                for (Item item:itemsFull){
+                    Log.d("ITEM_DATA",item.getTitle()+" : "+item.getTitle().contains(filterPattern)+" : "+filterPattern);
+                    if (item.getTitle().toLowerCase().contains(filterPattern)|item.getDescription().toLowerCase().contains(filterPattern)) {
+                        filterList.add(item);
+                        Log.d("SEARCH_FILTER",item.toString());
+                    }
+                }
+
+            }
+            FilterResults filterResults = new FilterResults();
+            filterResults.values = filterList;
+
+            return filterResults;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            items.clear();
+            items.addAll((List)results.values);
+            Log.d("SEARCH_FILTER","FILTER ADDED");
+            notifyDataSetChanged();
+        }
+    };
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
-        private TextView itemName;
-        private TextView quantity;
-        private TextView itemId;
-        private ConstraintLayout con;
+        private TextView titleTextView;
+        private TextView descriptionTextView;
+        private CheckBox IsComplete;
+        private ImageView IsImportant;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
 
-            itemName = itemView.findViewById(R.id.disname);
-            quantity = itemView.findViewById(R.id.disquantity);
-            itemId = itemView.findViewById(R.id.itemNo);
-            con = itemView.findViewById(R.id.background);
+            titleTextView = itemView.findViewById(R.id.title);
+            descriptionTextView = itemView.findViewById(R.id.description);
+            IsComplete=itemView.findViewById(R.id.isComplete);
+            IsImportant=itemView.findViewById(R.id.isImportant);
 
         }
 
@@ -101,23 +194,24 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             int position = this.getAdapterPosition();
             int id1;
             id1= position+1;
-            shopping shop = shoppingList.get(position);
-            String name = shop.getName();
-            String number = shop.getQuantity();
+            Item item = items.get(position);
+//            String name = shop.getName();
+//            String number = shop.getQuantity();
 //            con.setName(name);
 //            con.setPhoneNumber(number);
 //            id = db.getId(con);
-            Intent intent = new Intent(context, EditList.class);
+            Intent intent = new Intent(mContext, EditList.class);
 //            id = position+1;
-            intent.putExtra("Rid", id1);
-            intent.putExtra("Rname", name);
-            intent.putExtra("Rquantity", number);
+//            intent.putExtra("Rid", id1);
+//            intent.putExtra("Rname", name);
+//            intent.putExtra("Rquantity", number);
             Log.d("nishi", "onClick: Clicked on id :"+id1);
 
-            context.startActivity(intent);
+            mContext.startActivity(intent);
             Log.d("nishi", "onClick:after intent ");
-            Toast.makeText(context, "Clicked", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "Clicked", Toast.LENGTH_SHORT).show();
 
         }
+
     }
 }

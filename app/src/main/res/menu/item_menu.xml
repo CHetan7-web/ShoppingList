@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/search_menu"
+        android:title="Search"
+        android:icon="@drawable/search_icon"
+        app:showAsAction="always|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"/>
+
+    <item
+        android:title="SORT"
+        android:icon="@drawable/sort_icon"
+        app:showAsAction="always"
+        >
+        <menu>
+
+            <item android:id="@+id/sort_by_time_menu"
+                android:title="Sort By Time" />
+
+            <item android:id="@+id/sort_by_name_menu"
+                android:title="Sort By Name"/>
+
+        </menu>
+
+    </item>
+
+    <item android:id="@+id/delete_completed"
+        android:title="Delete Completed"
+        app:showAsAction="never"/>
+
+    <group android:checkableBehavior="all">
+    <item android:id="@+id/hide_completed"
+        app:showAsAction="never"
+        android:title="Hide Completed"
+        android:checkable="true"
+        app:actionViewClass="androidx.appcompat.widget.AppCompatCheckBox"
+        >
+    </item>
+
+    <item android:id="@+id/show_important"
+        app:showAsAction="never"
+        android:title="Show only Important"
+        android:checkable="true"
+        app:actionViewClass="androidx.appcompat.widget.AppCompatCheckBox"
+        >
+    </item>
+    </group>
+
+</menu>

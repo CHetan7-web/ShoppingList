@@ -14,7 +14,7 @@ import java.util.List;
 @Dao
 public interface ItemDao {
     @Insert
-    public void addItem(Item item);
+    void addItem(Item item);
 
     @Delete
     void deleteItem(Item item);
@@ -23,12 +23,12 @@ public interface ItemDao {
     void updateItem(Item item);
 
     @Query("Select * from shopping_item")
-    LiveData<List<Item>> getItems();
+    List<Item> getItems();
 
-    @Query("Select * from shopping_item order by time")
+    @Query("Select * from shopping_item order by time DESC limit 1")
     LiveData<List<Item>> getItemsSortedByTime();
 
-    @Query("Select * from shopping_item order by title")
+    @Query("Select * from shopping_item order by title COLLATE NOCASE")
     LiveData<List<Item>> getItemsSortedByTitle();
 
     @Query("Select * from shopping_item where isComplete=0")

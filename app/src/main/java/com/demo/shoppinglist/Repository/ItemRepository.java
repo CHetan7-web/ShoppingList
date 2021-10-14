@@ -2,8 +2,9 @@ package com.demo.shoppinglist.Repository;
 
 import android.app.Application;
 import android.os.AsyncTask;
+import android.util.Log;
 
-import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.demo.shoppinglist.Database.ShoppingDatabase;
 import com.demo.shoppinglist.Entity.Item;
@@ -13,27 +14,29 @@ import java.util.List;
 
 public class ItemRepository {
     private ItemDao itemDao;
-    LiveData<List<Item>> items;
+    MutableLiveData<List<Item>> items;
 
     private ShoppingDatabase database;
     static ItemRepository instnace;
 
-    private void setItems(LiveData<List<Item>> items) {
-        this.items = items;
+    private void setItems(MutableLiveData<List<Item>> items) {
+        this.items.postValue((List<Item>) items);
+        Log.d("LIVE_DATA","DATA SET");
     }
 
-    public LiveData<List<Item>> getItems(){
+    public MutableLiveData<List<Item>> getItems(){
         return this.items;
     }
 
     public ItemRepository(Application application){
         this.database = ShoppingDatabase.getInstance(application);
         this.itemDao = database.getItemDao();
-        this.items = itemDao.getItems();
+        this.items = new MutableLiveData<>();
+        this.items.postValue( itemDao.getItems());
     }
 
     public void insert(Item item){
-        new InsertItemAsync(itemDao).execute(item);
+        new InsertItemAsync(this).execute(item);
     }
 
     public void delete(Item item){
@@ -45,7 +48,7 @@ public class ItemRepository {
     }
 
     public void getAllItems(){
-        new AllItemAsync(itemDao).execute();
+        new AllItemAsync(this).execute();
     }
 
     public void getSortedItemsByTitle(){
@@ -64,17 +67,21 @@ public class ItemRepository {
         new DeleteCompleteItemsAsync(itemDao).execute();
     }
 
+    //************//ASYN TASKs
+
     private static class InsertItemAsync extends AsyncTask<Item ,Void,Void>{
 
+        private ItemRepository itemRepository;
         private ItemDao itemDao;
 
-        private InsertItemAsync(ItemDao itemDao){
-            itemDao = itemDao;
+        private InsertItemAsync(ItemRepository itemRepository){
+            this.itemRepository = itemRepository;
+            this.itemDao = this.itemRepository.itemDao;
         }
 
         @Override
         protected Void doInBackground(Item... items) {
-            itemDao.deleteItem(items[0]);
+            this.itemDao.addItem(items[0]);
             return null;
         }
     }
@@ -84,12 +91,12 @@ public class ItemRepository {
         private ItemDao itemDao;
 
         private UpdateItemAsync(ItemDao itemDao){
-            itemDao = itemDao;
+            this.itemDao = itemDao;
         }
 
         @Override
         protected Void doInBackground(Item... items) {
-            itemDao.updateItem(items[0]);
+            this.itemDao.updateItem(items[0]);
             return null;
         }
     }
@@ -99,93 +106,104 @@ public class ItemRepository {
         private ItemDao itemDao;
 
         private DeleteItemAsync(ItemDao itemDao){
-            itemDao = itemDao;
+            this.itemDao = itemDao;
         }
 
         @Override
         protected Void doInBackground(Item... items) {
-            itemDao.deleteItem(items[0]);
+            this.itemDao.deleteItem(items[0]);
             return null;
         }
     }
 
-    private static class AllItemAsync extends AsyncTask<Void ,Void,LiveData<List<Item>>>{
+    private static class AllItemAsync extends AsyncTask<Void ,Void,MutableLiveData<List<Item>>>{
 
+        private ItemRepository itemRepository;
         private ItemDao itemDao;
 
-        private AllItemAsync(ItemDao itemDao){
-            itemDao = itemDao;
+        private AllItemAsync(ItemRepository itemRepository){
+            this.itemRepository = itemRepository;
+            this.itemDao = this.itemRepository.itemDao;
         }
 
         @Override
-        protected LiveData<List<Item>> doInBackground(Void... voids) {
-            return itemDao.getItems();
+        protected MutableLiveData<List<Item>> doInBackground(Void... voids) {
+            return (MutableLiveData<List<Item>>) this.itemDao.getItems();
+
+        }
+
+        @Override
+        protected void onPostExecute(MutableLiveData<List<Item>> listMutableLiveData) {
+            super.onPostExecute(listMutableLiveData);
+            this.itemRepository.setItems(listMutableLiveData);
         }
     }
 
-    private static class SortedItemsByTitleItemAsync extends AsyncTask<Void ,Void,LiveData<List<Item>>>{
+    private static class SortedItemsByTitleItemAsync extends AsyncTask<Void ,Void,MutableLiveData<List<Item>>>{
 
         private ItemDao itemDao;
         private ItemRepository itemRepository;
 
         private SortedItemsByTitleItemAsync(ItemRepository itemRepository){
-            itemRepository = itemRepository;
-            itemDao = itemRepository.itemDao;
+            this.itemRepository = itemRepository;
+            this.itemDao = this.itemRepository.itemDao;
         }
 
         @Override
-        protected LiveData<List<Item>> doInBackground(Void... voids) {
-            return itemDao.getItemsSortedByTitle();
+        protected MutableLiveData<List<Item>> doInBackground(Void... voids) {
+            return (MutableLiveData<List<Item>>) this.itemDao.getItemsSortedByTitle();
         }
 
         @Override
-        protected void onPostExecute(LiveData<List<Item>> listLiveData) {
-            super.onPostExecute(listLiveData);
-            itemRepository.setItems(listLiveData);
+        protected void onPostExecute(MutableLiveData<List<Item>> listMutableLiveData) {
+            super.onPostExecute(listMutableLiveData);
+            this.itemRepository.setItems(listMutableLiveData);
+            Log.d("SORT_TIME","Sorted By Title");
         }
     }
 
-    private static class SortedItemsByTimeItemAsync extends AsyncTask<Void,Void,LiveData<List<Item>>>{
+    private static class SortedItemsByTimeItemAsync extends AsyncTask<Void,Void,MutableLiveData<List<Item>>>{
 
         private ItemDao itemDao;
         private ItemRepository itemRepository;
 
         private SortedItemsByTimeItemAsync(ItemRepository itemRepository){
-            itemRepository = itemRepository;
-            itemDao = itemRepository.itemDao;
+            this.itemRepository = itemRepository;
+            this.itemDao = this.itemRepository.itemDao;
         }
 
         @Override
-        protected LiveData<List<Item>> doInBackground(Void... voids) {
-            return itemDao.getItemsSortedByTime();
+        protected MutableLiveData<List<Item>> doInBackground(Void... voids) {
+            return (MutableLiveData<List<Item>>) this.itemDao.getItemsSortedByTime();
         }
 
         @Override
-        protected void onPostExecute(LiveData<List<Item>> listLiveData) {
-            super.onPostExecute(listLiveData);
-            itemRepository.setItems(listLiveData);
+        protected void onPostExecute(MutableLiveData<List<Item>> listMutableLiveData) {
+            super.onPostExecute(listMutableLiveData);
+            this.itemRepository.setItems(listMutableLiveData);
+            Log.d("SORT_TIME","Sorted By time");
         }
     }
 
-    private static class IncompleteItemsAsync extends AsyncTask<Void ,Void,LiveData<List<Item>>>{
+    private static class IncompleteItemsAsync extends AsyncTask<Void ,Void,MutableLiveData<List<Item>>>{
 
         private ItemDao itemDao;
         private ItemRepository itemRepository;
 
         private IncompleteItemsAsync(ItemRepository itemRepository){
-            itemRepository = itemRepository;
-            itemDao = itemRepository.itemDao;
+            this.itemRepository = itemRepository;
+            this.itemDao = this.itemRepository.itemDao;
         }
 
         @Override
-        protected LiveData<List<Item>> doInBackground(Void... voids) {
-            return itemDao.getIncompleteItems();
+        protected MutableLiveData<List<Item>> doInBackground(Void... voids) {
+            return (MutableLiveData<List<Item>>) this.itemDao.getIncompleteItems();
         }
 
         @Override
-        protected void onPostExecute(LiveData<List<Item>> listLiveData) {
-            super.onPostExecute(listLiveData);
-            itemRepository.setItems(listLiveData);
+        protected void onPostExecute(MutableLiveData<List<Item>> listMutableLiveData) {
+            super.onPostExecute(listMutableLiveData);
+            this.itemRepository.setItems(listMutableLiveData);
         }
     }
 
@@ -194,12 +212,12 @@ public class ItemRepository {
         private ItemDao itemDao;
 
         private DeleteCompleteItemsAsync(ItemDao itemDao){
-            itemDao = itemDao;
+            this.itemDao = itemDao;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            itemDao.deleteImportantItems();
+            this.itemDao.deleteImportantItems();
             return null;
         }
     }

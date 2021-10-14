@@ -27,16 +27,16 @@ public class EditList extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_list);
 
-        db = new MyDbHandler(this);
-        shopping = new shopping();
-        Intent intent = getIntent();
-        id = intent.getExtras().getInt("Rid");
-        String name = intent.getStringExtra("Rname");
-        String num = intent.getStringExtra("Rquantity");
-        item = findViewById(R.id.editName);
-        quantity = findViewById(R.id.editQuantity);
-        item.setText(name);
-        quantity.setText(num);
+//        db = new MyDbHandler(this);
+//        shopping = new shopping();
+//        Intent intent = getIntent();
+//        id = intent.getExtras().getInt("Rid");
+//        String name = intent.getStringExtra("Rname");
+//        String num = intent.getStringExtra("Rquantity");
+//        item = findViewById(R.id.editName);
+//        quantity = findViewById(R.id.editQuantity);
+//        item.setText(name);
+//        quantity.setText(num);
 
     }
     public void editList(View view){

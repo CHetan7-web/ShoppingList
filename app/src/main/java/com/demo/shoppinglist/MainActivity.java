@@ -1,8 +1,10 @@
 package com.demo.shoppinglist;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -13,6 +15,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -33,13 +38,9 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private RecyclerViewAdapter recyclerViewAdapter;
-    private ArrayList<shopping> shoppingArrayList;
-    private ArrayAdapter<String> arrayAdapter;
     public ItemViewModel itemViewModel;
     FloatingActionButton addItem ;
 
-//    MyDbHandler db;
-//    Button button;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,18 +51,19 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycleView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-//        button = findViewById(R.id.drop);
-        shoppingArrayList = new ArrayList<>();
 
-
-        recyclerViewAdapter = new RecyclerViewAdapter(MainActivity.this, shoppingArrayList);
+        recyclerViewAdapter = new RecyclerViewAdapter(this);
         recyclerView.setAdapter(recyclerViewAdapter);
 
         itemViewModel = new ViewModelProvider(this).get(ItemViewModel.class);
-        itemViewModel.getAllItems().observe(this, new Observer<List<Item>>() {
+        itemViewModel.getAllItems().
+                observe(this, new Observer<List<Item>>() {
             @Override
             public void onChanged(List<Item> items) {
                 Toast.makeText(MainActivity.this,"Onchanged",Toast.LENGTH_SHORT).show();
+                for (Item item:items)
+                    Log.d("ITEM",item.toString());
+                recyclerViewAdapter.setItems(items);
             }
         });
 
@@ -98,11 +100,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void addItem(View view){
-        Intent intent = new Intent(this,NewList.class);
-        startActivity(intent);
-    }
-
     public void drop(View view){
 
 //        db.delTable();
@@ -111,13 +108,86 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.item_menu,menu);
+
+        MenuItem searchItem = menu.findItem(R.id.search_menu);
+        MenuItem hideComplete = menu.findItem(R.id.hide_completed);
+
+        SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                recyclerViewAdapter.getFilter().filter(newText);
+                return false;
+            }
+        });
+
+        return true;
+        //return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+
+            case R.id.sort_by_time_menu:
+                Log.d("ITEM_MENU","Srt By Time");
+                itemViewModel.sortedByTime();
+                return true;
+
+            case R.id.sort_by_name_menu:
+                Log.d("ITEM_MENU","Srt By Name");
+                itemViewModel.sortedByTitle();
+                return true;
+
+            case R.id.delete_completed:
+                itemViewModel.deleteComplete();
+                return true;
+
+            case R.id.hide_completed:
+                Toast.makeText(this,"Hiding",Toast.LENGTH_SHORT).show();
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                    itemViewModel.incompleteItems();
+                }
+                else {
+                    item.setChecked(true);
+                    itemViewModel.all();
+                }
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode==ADD_NOTE_REQUEST){
+        if(requestCode==ADD_NOTE_REQUEST && resultCode==RESULT_OK){
+            String title=data.getStringExtra(NewList.EXTRA_TITLE);
+            String description=data.getStringExtra(NewList.EXTRA_DESCRIPTION);
+            Log.d("EXTRA_TIME",data.getStringExtra(NewList.EXTRA_TIME));
+            long time=Long.valueOf(data.getStringExtra(NewList.EXTRA_TIME));
 
+            Item item=new Item(time,title,description);
+            itemViewModel.insert(item);
 
+            Toast.makeText(this,"Item saved",Toast.LENGTH_SHORT).show();
         }
+        else
+            Toast.makeText(this,"Item not saved",Toast.LENGTH_SHORT).show();
 
 
     }

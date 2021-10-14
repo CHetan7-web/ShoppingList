@@ -5,6 +5,7 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.demo.shoppinglist.Entity.Item;
 import com.demo.shoppinglist.Repository.ItemRepository;
@@ -13,13 +14,14 @@ import java.util.List;
 
 public class ItemViewModel extends AndroidViewModel {
 
-    private LiveData<List<Item>> allItems;
+    private MutableLiveData<List<Item>> allItems;
     private ItemRepository itemRepository;
 
     public ItemViewModel(@NonNull Application application) {
         super(application);
         itemRepository = new ItemRepository(application);
-        allItems = itemRepository.getItems();
+//        this.allItems= new LiveData<>();
+        allItems= itemRepository.getItems();
     }
 
     public void insert(Item item){
@@ -54,8 +56,7 @@ public class ItemViewModel extends AndroidViewModel {
         itemRepository.getAllItems();
     }
 
-
-    public LiveData<List<Item>> getAllItems() {
+    public MutableLiveData<List<Item>> getAllItems() {
         return allItems;
     }
 }
