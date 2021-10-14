@@ -14,7 +14,7 @@ import java.util.List;
 
 public class ItemViewModel extends AndroidViewModel {
 
-    private MutableLiveData<List<Item>> allItems;
+    private LiveData<List<Item>> allItems;
     private ItemRepository itemRepository;
 
     public ItemViewModel(@NonNull Application application) {
@@ -56,7 +56,7 @@ public class ItemViewModel extends AndroidViewModel {
         itemRepository.getAllItems();
     }
 
-    public MutableLiveData<List<Item>> getAllItems() {
+    public LiveData<List<Item>> getAllItems() {
         return allItems;
     }
 }

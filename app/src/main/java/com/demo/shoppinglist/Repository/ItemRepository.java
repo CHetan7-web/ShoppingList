@@ -4,6 +4,7 @@ import android.app.Application;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.demo.shoppinglist.Database.ShoppingDatabase;
@@ -14,25 +15,25 @@ import java.util.List;
 
 public class ItemRepository {
     private ItemDao itemDao;
-    MutableLiveData<List<Item>> items;
+    LiveData<List<Item>> items;
 
     private ShoppingDatabase database;
     static ItemRepository instnace;
 
-    private void setItems(MutableLiveData<List<Item>> items) {
-        this.items.postValue((List<Item>) items);
+    private void setItems(LiveData<List<Item>> items) {
+//        this.items
         Log.d("LIVE_DATA","DATA SET");
     }
 
-    public MutableLiveData<List<Item>> getItems(){
+    public LiveData<List<Item>> getItems(){
         return this.items;
     }
 
     public ItemRepository(Application application){
         this.database = ShoppingDatabase.getInstance(application);
         this.itemDao = database.getItemDao();
-        this.items = new MutableLiveData<>();
-        this.items.postValue( itemDao.getItems());
+//        this.items = new LiveData<>();
+        this.items= itemDao.getItems();
     }
 
     public void insert(Item item){
@@ -116,7 +117,7 @@ public class ItemRepository {
         }
     }
 
-    private static class AllItemAsync extends AsyncTask<Void ,Void,MutableLiveData<List<Item>>>{
+    private static class AllItemAsync extends AsyncTask<Void ,Void,LiveData<List<Item>>>{
 
         private ItemRepository itemRepository;
         private ItemDao itemDao;
@@ -127,19 +128,19 @@ public class ItemRepository {
         }
 
         @Override
-        protected MutableLiveData<List<Item>> doInBackground(Void... voids) {
-            return (MutableLiveData<List<Item>>) this.itemDao.getItems();
+        protected LiveData<List<Item>> doInBackground(Void... voids) {
+            return this.itemDao.getItems();
 
         }
 
         @Override
-        protected void onPostExecute(MutableLiveData<List<Item>> listMutableLiveData) {
-            super.onPostExecute(listMutableLiveData);
-            this.itemRepository.setItems(listMutableLiveData);
+        protected void onPostExecute(LiveData<List<Item>> listLiveData) {
+            super.onPostExecute(listLiveData);
+            this.itemRepository.setItems(listLiveData);
         }
     }
 
-    private static class SortedItemsByTitleItemAsync extends AsyncTask<Void ,Void,MutableLiveData<List<Item>>>{
+    private static class SortedItemsByTitleItemAsync extends AsyncTask<Void ,Void,LiveData<List<Item>>>{
 
         private ItemDao itemDao;
         private ItemRepository itemRepository;
@@ -150,19 +151,19 @@ public class ItemRepository {
         }
 
         @Override
-        protected MutableLiveData<List<Item>> doInBackground(Void... voids) {
-            return (MutableLiveData<List<Item>>) this.itemDao.getItemsSortedByTitle();
+        protected LiveData<List<Item>> doInBackground(Void... voids) {
+            return this.itemDao.getItemsSortedByTitle();
         }
 
         @Override
-        protected void onPostExecute(MutableLiveData<List<Item>> listMutableLiveData) {
+        protected void onPostExecute(LiveData<List<Item>> listMutableLiveData) {
             super.onPostExecute(listMutableLiveData);
             this.itemRepository.setItems(listMutableLiveData);
             Log.d("SORT_TIME","Sorted By Title");
         }
     }
 
-    private static class SortedItemsByTimeItemAsync extends AsyncTask<Void,Void,MutableLiveData<List<Item>>>{
+    private static class SortedItemsByTimeItemAsync extends AsyncTask<Void,Void,LiveData<List<Item>>>{
 
         private ItemDao itemDao;
         private ItemRepository itemRepository;
@@ -173,19 +174,19 @@ public class ItemRepository {
         }
 
         @Override
-        protected MutableLiveData<List<Item>> doInBackground(Void... voids) {
-            return (MutableLiveData<List<Item>>) this.itemDao.getItemsSortedByTime();
+        protected LiveData<List<Item>> doInBackground(Void... voids) {
+            return (LiveData<List<Item>>) this.itemDao.getItemsSortedByTime();
         }
 
         @Override
-        protected void onPostExecute(MutableLiveData<List<Item>> listMutableLiveData) {
+        protected void onPostExecute(LiveData<List<Item>> listMutableLiveData) {
             super.onPostExecute(listMutableLiveData);
             this.itemRepository.setItems(listMutableLiveData);
             Log.d("SORT_TIME","Sorted By time");
         }
     }
 
-    private static class IncompleteItemsAsync extends AsyncTask<Void ,Void,MutableLiveData<List<Item>>>{
+    private static class IncompleteItemsAsync extends AsyncTask<Void ,Void,LiveData<List<Item>>>{
 
         private ItemDao itemDao;
         private ItemRepository itemRepository;
@@ -196,12 +197,12 @@ public class ItemRepository {
         }
 
         @Override
-        protected MutableLiveData<List<Item>> doInBackground(Void... voids) {
-            return (MutableLiveData<List<Item>>) this.itemDao.getIncompleteItems();
+        protected LiveData<List<Item>> doInBackground(Void... voids) {
+            return (LiveData<List<Item>>) this.itemDao.getIncompleteItems();
         }
 
         @Override
-        protected void onPostExecute(MutableLiveData<List<Item>> listMutableLiveData) {
+        protected void onPostExecute(LiveData<List<Item>> listMutableLiveData) {
             super.onPostExecute(listMutableLiveData);
             this.itemRepository.setItems(listMutableLiveData);
         }

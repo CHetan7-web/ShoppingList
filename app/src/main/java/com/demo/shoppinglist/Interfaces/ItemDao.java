@@ -23,7 +23,7 @@ public interface ItemDao {
     void updateItem(Item item);
 
     @Query("Select * from shopping_item")
-    List<Item> getItems();
+    LiveData<List<Item>> getItems();
 
     @Query("Select * from shopping_item order by time DESC limit 1")
     LiveData<List<Item>> getItemsSortedByTime();
